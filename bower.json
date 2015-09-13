@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "dist/jquery-pl.min.js",
   "authors": [
-    "Jordan Markov <jmarkov@musat-bg.com>"
+    "Jordan Markov <jmarkov@gmail.com>"
   ],
   "description": "OpenLayers 3 jQuery plugin",
   "homepage": "https://bitbucket.org/jordanmarkov/jquery-ol.git",
