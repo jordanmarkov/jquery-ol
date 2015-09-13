@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ol-configuration>
+    <ol-view>
+        <ol-property name="center">23.3225964, 42.6977211</ol-property>
+        <ol-property name="zoom">15</ol-property>
+    </ol-view>
+
+    <ol-style name="track-style">
+        <ol-resolution gte="6">
+            <ol-image type="circle" radius="5" snaptopixel="true">
+                <ol-fill color="#fba"></ol-fill>
+                <ol-stroke color="#000000" width="1"></ol-stroke>
+            </ol-image>
+            <ol-stroke color="red" width="2">
+                <ol-property name="lineCap">round</ol-property>
+                <ol-property name="lineJoin">round</ol-property>
+                <ol-property name="miterLimit">10</ol-property>
+            </ol-stroke>
+        </ol-resolution>
+        <ol-resolution gte="2.388657133911758">
+            <ol-image type="circle" radius="10" snaptopixel="true">
+                <ol-fill color="#fba"></ol-fill>
+                <ol-stroke color="#000000" width="2"></ol-stroke>
+            </ol-image>
+            <ol-stroke color="red" width="4">
+                <ol-property name="lineCap">round</ol-property>
+                <ol-property name="lineJoin">round</ol-property>
+                <ol-property name="miterLimit">10</ol-property>
+            </ol-stroke>
+        </ol-resolution>
+        <ol-resolution lte="0.5">
+            <ol-image type="icon" src="home.png" snaptopixel="true">
+                <ol-property name="anchor">0.5, 1</ol-property>
+                <ol-property name="opacity">0.85</ol-property>
+            </ol-image>
+            <ol-stroke color="red" width="4">
+                <ol-property name="lineCap">round</ol-property>
+                <ol-property name="lineJoin">round</ol-property>
+                <ol-property name="miterLimit">10</ol-property>
+            </ol-stroke>
+        </ol-resolution>
+
+        <ol-image type="regular-shape" radius="15" snaptopixel="true">
+            <ol-fill color="#fba"></ol-fill>
+            <ol-stroke color="#000000" width="2"></ol-stroke>
+            <ol-property name="points">5</ol-property>
+            <ol-property name="radius2">10</ol-property>
+        </ol-image>
+
+        <ol-stroke color="red" width="4">
+            <ol-property name="lineCap">round</ol-property>
+            <ol-property name="lineJoin">round</ol-property>
+            <ol-property name="lineDash">10, 15, 2, 15</ol-property>
+            <ol-property name="miterLimit">10</ol-property>
+        </ol-stroke>
+
+        <ol-fill color="#ffffff"></ol-fill>
+    </ol-style>
+
+    <ol-layer type="tile" name="base">
+        <ol-source type="mapQuest" layer="osm"></ol-source>
+    </ol-layer>
+
+    <ol-layer type="vector" style-id="track-style" name="dynamic">
+        <ol-source type="vector" format="geojson" projection="EPSG:4326" src="features.json"></ol-source>
+    </ol-layer>
+    <!--ol-layer type="vector" style-id="track-style" name="dynamic">
+        <ol-source type="vector" format="geojson" projection="EPSG:4326"><![CDATA[
+            {
+                "features": [{
+                    "geometry": {
+                        "coordinates": [23.3225964,42.6977211,550.0],
+                        "type": "Point"
+                    },
+                    "id": "1",
+                    "properties": {
+                        "name": "POI name"
+                    },
+                    "type": "Feature"
+                }, {
+                    "geometry": {
+                        "coordinates": [23.3335964,42.6987211,550.0],
+                        "type": "Point"
+                    },
+                    "id": "2",
+                    "properties": {
+                        "name": "POI name 2"
+                    },
+                    "type": "Feature"
+                }, {
+                    "geometry": {
+                        "coordinates": [
+                            [23.3225964, 42.6977211,550.0],
+                            [23.3335964, 42.6987211,550.0],
+                            [23.3335964, 42.7087211,550.0]
+                        ],
+                        "type": "LineString"
+                    },
+                    "id": "3",
+                    "properties": {
+                        "name": "POI name 2"
+                    },
+                    "type": "Feature"
+                }],
+                "type": "FeatureCollection"
+            }
+        ]]></ol-source>
+    </ol-layer-->
+
+    <!--ol-layer type="vector" style-id="track-style">
+        <ol-source type="vector" format="inline" projection="EPSG:4326">
+            <ol-feature>
+                <ol-geometry type="Point">23.3225964 42.6977211</ol-geometry>
+                <ol-property name="name">Sofia</ol-property>
+            </ol-feature>
+            <ol-feature>
+                <ol-geometry type="LineString">23.3225964 42.6977211, 23.3235964 42.6987211, 23.3245964 42.6997211</ol-geometry>
+                <ol-property name="name">Some line</ol-property>
+            </ol-feature>
+        </ol-source>
+    </ol-layer-->
+</ol-configuration>

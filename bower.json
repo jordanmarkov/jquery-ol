@@ -1,0 +1,28 @@
+{
+  "name": "jquery-ol",
+  "version": "1.0.0",
+  "main": "dist/jquery-pl.min.js",
+  "authors": [
+    "Jordan Markov <jmarkov@musat-bg.com>"
+  ],
+  "description": "OpenLayers 3 jQuery plugin",
+  "homepage": "https://example.com",
+  "license": "BSD-3-Clause",
+  "keywords": [
+    "ol",
+    "openlayers",
+    "openlayers3",
+    "jquery"
+  ],
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "jquery": "~1.11.3"
+  },
+  "devDependencies": {}
+}
