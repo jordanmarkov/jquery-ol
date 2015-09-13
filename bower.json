@@ -6,7 +6,7 @@
     "Jordan Markov <jmarkov@musat-bg.com>"
   ],
   "description": "OpenLayers 3 jQuery plugin",
-  "homepage": "https://example.com",
+  "homepage": "https://bitbucket.org/jordanmarkov/jquery-ol.git",
   "license": "BSD-3-Clause",
   "keywords": [
     "ol",
