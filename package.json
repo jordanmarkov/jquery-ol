@@ -8,17 +8,17 @@
     "openlayers3",
     "jquery"
   ],
-  "homepage": "https://bitbucket.org/jordanmarkov/jquery-ol",
+  "homepage": "https://github.com/jordanmarkov/jquery-ol",
   "author": "Jordan Markov <jmarkov@gmail.com>",
   "main": "dist/jquery-ol.min.js",
   "style": "dist/jquery-ol.min.css",
   "less": "less/jquery-ol.less",
   "repository": {
     "type": "git",
-    "url": "https://bitbucket.org/jordanmarkov/jquery-ol.git"
+    "url": "https://github.com/jordanmarkov/jquery-ol.git"
   },
   "bugs": {
-    "url": "https://bitbucket.org/jordanmarkov/jquery-ol/issues"
+    "url": "https://github.com/jordanmarkov/jquery-ol/issues"
   },
   "license": "BSD-3-Clause",
   "dependencies": {},
