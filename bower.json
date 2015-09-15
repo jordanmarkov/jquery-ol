@@ -15,9 +15,13 @@
     "jquery"
   ],
   "ignore": [
-    "**/.*",
+    ".gitignore",
     "node_modules",
     "bower_components",
+    "coffee",
+    "dist/.gitignore",
+    "dist/*.coffee",
+    "Gruntfile.js",
     "test",
     "tests"
   ],

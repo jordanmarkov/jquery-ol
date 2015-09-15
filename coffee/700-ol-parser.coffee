@@ -55,6 +55,10 @@ class OlParser
         if layerName not in ['osm', 'sat', 'hyb'] then throw "Unsupported MapQuest layer: '#{ layerName }'. Valid options are 'osm', 'sat' or 'hyb'."
         new ol.source.MapQuest layer: layerName
 
+    _parseOSMSource: ($element) ->
+        urlFormat = $element.attr 'url-format' or undefined
+        new ol.source.OSM url: urlFormat
+
     _parseTileSource: ($element) ->
         $sourceElements = $element.children('ol-source')
         if $sourceElements.length != 1 then throw "Expected exactly 1 source, #{ $sourceElements.length } given."
@@ -62,6 +66,7 @@ class OlParser
         $this = $($sourceElements[0])
         switch $this.attr 'type'
             when 'mapQuest' then @_parseMapQuestSource $this
+            when 'osm' then @_parseOSMSource $this
             else throw "Usupported tile source type: '#{ $this.attr 'type' }'"
 
     _parseTileLayer: ($element) ->
