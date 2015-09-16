@@ -206,6 +206,7 @@
 
     function OlInteractions(map) {
       _map = map;
+      return;
     }
 
     OlInteractions.prototype.dragCursor = function() {
@@ -223,10 +224,10 @@
           });
         };
       })(this));
-      return _map.on('pointermove', (function(_this) {
+      _map.on('pointermove', (function(_this) {
         return function(e) {
           if (e.dragging) {
-            return $(_map.getTarget()).css({
+            $(_map.getTarget()).css({
               cursor: 'move'
             });
           }
@@ -237,7 +238,7 @@
     OlInteractions.prototype.hoverCursor = function(_options) {
       var options;
       options = $.extend({}, _deafultHoverOptions, _options);
-      return _map.on('pointermove', (function(_this) {
+      _map.on('pointermove', (function(_this) {
         return function(e) {
           var feature, pixel;
           pixel = _map.getEventPixel(e.originalEvent);
@@ -276,7 +277,7 @@
         stopEvent: false
       });
       _map.addOverlay(popupOverlay);
-      return _map.on('click', (function(_this) {
+      _map.on('click', (function(_this) {
         return function(e) {
           var feature, pixel;
           pixel = _map.getEventPixel(e.originalEvent);
@@ -329,7 +330,7 @@
       });
       _map.addOverlay(tooltipOverlay);
       tooltipShown = null;
-      return _map.on('pointermove', (function(_this) {
+      _map.on('pointermove', (function(_this) {
         return function(e) {
           var changeTooltop, coords, feature, fn, fnText, geom, pixel, propName, tooltip, tooltipContent, tooltipFn, tooltipTemplate;
           pixel = _map.getEventPixel(e.originalEvent);

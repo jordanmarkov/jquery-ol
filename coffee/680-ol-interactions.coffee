@@ -6,6 +6,7 @@ class OlInteractions
 
     constructor: (map) ->
         _map = map
+        return
 
     dragCursor: ->
         _map.on 'moveend', (e) =>
@@ -19,6 +20,9 @@ class OlInteractions
         _map.on 'pointermove', (e) =>
             if e.dragging
                 $(_map.getTarget()).css cursor: 'move'
+            return
+
+        return
 
     hoverCursor: (_options) ->
         options = $.extend {}, _deafultHoverOptions, _options
@@ -35,6 +39,7 @@ class OlInteractions
             else
                 $(_map.getTarget()).css cursor: ''
             return
+        return
 
     popups: ->
         $popupElement = $('<div>').appendTo($(_map.getTarget()))
@@ -74,6 +79,7 @@ class OlInteractions
             else
                 $popupElement.popover 'destroy'
             return
+        return
 
     tooltips: ->
         $tooltipElement = $('<div>').appendTo($(_map.getTarget()))
@@ -140,3 +146,4 @@ class OlInteractions
                     changeTooltop()
                 tooltipShown = feature
             return
+        return
