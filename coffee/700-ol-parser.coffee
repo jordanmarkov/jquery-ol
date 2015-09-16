@@ -1,6 +1,7 @@
 class OlParser
     _styleParser = new OlStyleParser()
     _mapProjection = 'EPSG:3857'
+    _configProjection = 'EPSG:4326'
 
     _isDomNode: (obj) ->
         if typeof Node is 'object'
@@ -14,6 +15,24 @@ class OlParser
         else
             obj? and typeof obj is 'object' and obj.nodeType == 1 and typeof obj.nodeName is "string"
 
+    _parseFixedStrategy: ($element) ->
+        bboxCP = (parseFloat(coord.trim()) for coord in $element.text().split(','))
+        bboxMP = ol.proj.transformExtent bboxCP, _configProjection, _mapProjection
+        () -> [ bboxMP ]
+
+    _parseVectorStrategy: ($element) ->
+        $strategyElement = $element.children('ol-strategy')
+        if $strategyElement.length > 1 then throw "Expected 0 or 1 strategies, #{ $strategyElement.length } given."
+
+        $this = $strategyElement
+        if $this.length == 0 or $this.attr('type') == 'all'
+            ol.loadingstrategy.all
+        else
+            switch $this.attr 'type'
+                when 'bbox' then ol.loadingstrategy.bbox
+                when 'fixed' then @_parseFixedStrategy $this
+                else throw "Usupported strategy type: '#{ $this.attr 'type' }'"
+
     _parseGeoJsonSource: ($element) ->
         if not $element.attr('src')?
             # jQuery adds HTML comments to CDATA content (most probably), so remove it
@@ -26,10 +45,30 @@ class OlParser
                     dataProjection: $element.attr('projection') or throw "'projection' is required for GeoJson layer"
                     featureProjection: _mapProjection
         else
+            format = new ol.format.GeoJSON
+                defaultProjection: $element.attr('projection') or throw "'projection' is required for GeoJson layer"
             new ol.source.Vector
-                format: new ol.format.GeoJSON
-                    defaultProjection: $element.attr('projection') or throw "'projection' is required for GeoJson layer"
-                url: $element.attr('src')
+                loader: (extent, resolution, projection) ->
+                    layerSource = @
+                    projectionString = projection.getCode()
+                    extent = if extent.any((c) -> c == Infinity or c == -Infinity) then projection.getExtent() else extent
+                    $.ajax
+                        url: $element.attr('src')
+                        data:
+                            srs: projectionString
+                            extent: extent.join(',')
+                            resolution: resolution
+                        dataType: 'json'
+                        success: (data, textStatus, jqXHR) ->
+                            console.log "loaded features"
+                            console.log data
+                            features = format.readFeatures data
+                            layerSource.addFeatures features
+                        error: (jqXHR, textStatus, errorThrown) ->
+                            console.error  "ajax error for '#{ $element.attr('src') }': #{ textStatus }, #{ errorThrown }"
+                    return
+                strategy: @_parseVectorStrategy $element
+                projection: _mapProjection
 
     _parseVectorSource: ($element) ->
         $sourceElement = $element.children('ol-source')
@@ -115,8 +154,8 @@ class OlParser
                 else throw "Usupported view property: '#{ key }'"
             properties[key] = val
         _mapProjection = properties.projection = properties.projection ? _mapProjection
-        if properties.center? then properties.center = ol.proj.transform properties.center, 'EPSG:4326', properties.projection
-        if properties.extent? then properties.extent = ol.proj.transformExtent properties.extent, 'EPSG:4326', properties.projection
+        if properties.center? then properties.center = ol.proj.transform properties.center, _configProjection, properties.projection
+        if properties.extent? then properties.extent = ol.proj.transformExtent properties.extent, _configProjection, properties.projection
         new ol.View properties
 
     _getOlConfig: ($element) ->
@@ -134,13 +173,17 @@ class OlParser
             deferred.resolve  $($.parseXML $element.children('script[type="application/xml"]').text()).children('ol-configuration')
         deferred
 
-    parseMap: (element) ->
+    parseMap: (element, options) ->
+        _configProjection = if options.projection then options.projection else 'EPSG:4326'
+
         $element = switch
             when element instanceof $ then element
             when typeof element is 'string' then $("#{ element }")
             when @_isDomNode element then $(element)
             else throw "Unknown element"
         if $element.length == 0 then throw "Unknown element"
+
+        _configProjection = if $element.attr 'projection' then $element.attr 'projection' else _configProjection
 
         $popupElement = $('<div>').appendTo($element)
         popupOverlay = new ol.Overlay

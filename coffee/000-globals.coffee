@@ -14,3 +14,11 @@ String::trim ?= -> @.replace(/^\s+|\s+$/g, '')
 # these are non-standard anyways
 #String::trimStart ?= (s) -> if @.startsWith s then @[(s.length)..] else @
 #String::trimEnd ?= (s) -> if @.endsWith s then @[...(-s.length)] else @
+
+Array::any ?= (f) ->
+  (return true if f x) for x in @
+  return false
+
+Array::all ?= (f) ->
+  (return false if not f x) for x in @
+  return true

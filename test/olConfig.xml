@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ol-configuration>
+<ol-configuration projection="EPSG:4326">
     <ol-view>
         <ol-property name="center">23.3225964, 42.6977211</ol-property>
         <ol-property name="zoom">15</ol-property>
@@ -62,7 +62,12 @@
     </ol-layer>
 
     <ol-layer type="vector" style-id="track-style" name="dynamic">
-        <ol-source type="vector" format="geojson" projection="EPSG:4326" src="features.json"></ol-source>
+        <ol-source type="vector" format="geojson" projection="EPSG:4326" src="features.json">
+            <!-- strategies are available for AJAX loaded data only -->
+            <ol-strategy type="all"></ol-strategy>
+            <!--ol-strategy type="bbox"></ol-strategy>
+            <ol-strategy type="fixed">-180, -85.06, 180, 85.06</ol-strategy-->
+        </ol-source>
     </ol-layer>
     <!--ol-layer type="vector" style-id="track-style" name="dynamic">
         <ol-source type="vector" format="geojson" projection="EPSG:4326"><![CDATA[

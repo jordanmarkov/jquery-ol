@@ -43,7 +43,7 @@ module.exports = function (grunt) {
                 options: {
                     join: true,
                     bare: false,
-                    sourceMap: true
+                    sourceMap: false
                 },
                 files: {
                     'dist/<%= pkg.name %>.js': ['coffee/**/*.coffee']
