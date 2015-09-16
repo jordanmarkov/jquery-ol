@@ -28,6 +28,23 @@
     <script src="../dist/jquery-ol.js"></script>
     <script>
         $(function() {
+            $('[data-toggle="openlayers"]').on('jquery-ol.map.initialized', function(e) {
+                //console.log("Map initialized!");
+                //console.log(e);
+                $(this).jqOpenLayers('getVectorLayers').then(function(layers) {
+                    console.log(layers);
+                    $.each(layers, function(idx, layer) {
+                        var source = layer.get('source');
+                        console.log(source);
+                        setTimeout(function() {
+                            console.log('setting property...');
+                            source.set('start', 1000);
+                            source.set('end', 9999);
+                            source.oljq_refresh();
+                        }, 1000);
+                    });
+                });
+            });
             $('[data-toggle="openlayers"]').jqOpenLayers();
         });
     </script>

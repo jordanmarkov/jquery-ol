@@ -2,6 +2,10 @@ class OlParser
     _styleParser = new OlStyleParser()
     _mapProjection = 'EPSG:3857'
     _configProjection = 'EPSG:4326'
+    _map = null
+    _layers = []
+
+    _addLayer: (layer) -> _layers.push layer
 
     _isDomNode: (obj) ->
         if typeof Node is 'object'
@@ -33,12 +37,20 @@ class OlParser
                 when 'fixed' then @_parseFixedStrategy $this
                 else throw "Usupported strategy type: '#{ $this.attr 'type' }'"
 
+    _parseGeoJsonSourceProperties: ($element) ->
+        properties = { }
+        $element.children('ol-property').each ->
+            key = $(this).attr('name')
+            val = $(this).text()
+            if not key
+                throw "Property name cannot be empty in source ol-property"
+            if properties[key]?
+                throw "Property name cannot be duplicated in source ol-property"
+            properties[key] = val
+        properties
+
     _parseGeoJsonSource: ($element) ->
         if not $element.attr('src')?
-            # jQuery adds HTML comments to CDATA content (most probably), so remove it
-            #jsonContent = $element.html()
-            #jsonContent = jsonContent.trimStart('<!--[CDATA[').trimEnd(']]-->').trimStart('<![CDATA[').trimEnd(']]>')
-            # When parsing actual XML there's no such problem
             jsonContent = $element.text()
             new ol.source.Vector
                 features: new ol.format.GeoJSON().readFeatures JSON.parse(jsonContent),
@@ -47,28 +59,52 @@ class OlParser
         else
             format = new ol.format.GeoJSON
                 defaultProjection: $element.attr('projection') or throw "'projection' is required for GeoJson layer"
-            new ol.source.Vector
-                loader: (extent, resolution, projection) ->
-                    layerSource = @
-                    projectionString = projection.getCode()
-                    extent = if extent.any((c) -> c == Infinity or c == -Infinity) then projection.getExtent() else extent
-                    $.ajax
-                        url: $element.attr('src')
-                        data:
-                            srs: projectionString
-                            extent: extent.join(',')
-                            resolution: resolution
-                        dataType: 'json'
-                        success: (data, textStatus, jqXHR) ->
-                            console.log "loaded features"
-                            console.log data
-                            features = format.readFeatures data
-                            layerSource.addFeatures features
-                        error: (jqXHR, textStatus, errorThrown) ->
-                            console.error  "ajax error for '#{ $element.attr('src') }': #{ textStatus }, #{ errorThrown }"
-                    return
-                strategy: @_parseVectorStrategy $element
+            that = this
+            loader = (extent, resolution, projection) ->
+                layerSource = @
+                projectionString = projection.getCode()
+                extent = if extent.any((c) -> c == Infinity or c == -Infinity) then projection.getExtent() else extent
+                ajaxData = $.extend {}, layerSource.getProperties(), {
+                    srs: projectionString
+                    extent: extent.join(',')
+                    resolution: resolution
+                }
+                $.ajax
+                    url: $element.attr('src')
+                    data: ajaxData
+                    cache: false
+                    dataType: 'json'
+                    success: (data, textStatus, jqXHR) ->
+                        features = format.readFeatures data,
+                            dataProjection: format.defaultDataProjection
+                            featureProjection: _mapProjection
+                        layerSource.addFeatures features
+                    error: (jqXHR, textStatus, errorThrown) ->
+                        console.error  "ajax error for '#{ $element.attr('src') }': #{ textStatus }, #{ errorThrown }"
+                return
+            strategy = @_parseVectorStrategy $element
+
+            source = new ol.source.Vector
+                loader: loader
+                strategy: strategy
                 projection: _mapProjection
+            source.setProperties that._parseGeoJsonSourceProperties $element
+
+            if $element.attr('refresh')?
+                refreshInterval = parseInt($element.attr('refresh'), 10)
+                if refreshInterval > 0
+                    setInterval (=>
+                        view = _map.getView()
+                        loader.call(source, view.calculateExtent(_map.getSize()), view.getResolution(), view.getProjection())
+                    ), refreshInterval
+
+            source.oljq_refresh = =>
+                if not _map?
+                    return
+                view = _map.getView()
+                loader.call(source, view.calculateExtent(_map.getSize()), view.getResolution(), view.getProjection())
+
+            source
 
     _parseVectorSource: ($element) ->
         $sourceElement = $element.children('ol-source')
@@ -117,10 +153,12 @@ class OlParser
         layers = []
         $element.children('ol-layer').each (idx, olLayerElement) =>
             $this = $(olLayerElement)
-            layers.push switch $this.attr 'type'
+            layer = switch $this.attr 'type'
                 when 'vector' then @_parseVectorLayer $this
                 when 'tile' then @_parseTileLayer $this
                 else throw "Usupported layer type: '#{ $this.attr 'type' }'"
+            layers.push layer
+            @_addLayer layer
             return
         layers
 
@@ -173,6 +211,10 @@ class OlParser
             deferred.resolve  $($.parseXML $element.children('script[type="application/xml"]').text()).children('ol-configuration')
         deferred
 
+    getLayers: -> _layers.slice()
+
+    getVectorLayers: -> (layer for layer in _layers when layer.get('source') instanceof ol.source.Vector)
+
     parseMap: (element, options) ->
         _configProjection = if options.projection then options.projection else 'EPSG:4326'
 
@@ -185,12 +227,6 @@ class OlParser
 
         _configProjection = if $element.attr 'projection' then $element.attr 'projection' else _configProjection
 
-        $popupElement = $('<div>').appendTo($element)
-        popupOverlay = new ol.Overlay
-            element: $popupElement[0]
-            positioning: 'bottom-center'
-            stopEvent: false
-
         @_getOlConfig($element).then ($olConfig) =>
             _styleParser.parseStyles $olConfig
 
@@ -198,55 +234,18 @@ class OlParser
                 target: $element[0]
                 view: @_parseView $olConfig
                 layers: @_parseOlLayers $olConfig
-            map.addOverlay popupOverlay
+            _map = map
 
-            map.on 'moveend', (e) =>
-                map.getTarget().style.cursor = ''
-                return
+            interactions = new OlInteractions(map)
+            interactions.dragCursor()
+            interactions.hoverCursor()
+            interactions.popups()
+            interactions.tooltips()
 
-            map.on 'pointerdrag', (e) =>
-                map.getTarget().style.cursor = 'move'
-                return
+            setTimeout (=>
+                $element.trigger
+                    type: 'jquery-ol.map.initialized'
+                    map: map
+            ), 10
 
-            map.on 'click', (e) =>
-                pixel = map.getEventPixel e.originalEvent
-                feature = map.forEachFeatureAtPixel pixel, (feature, layer) => feature
-                if feature and feature.get('href')
-                    $.ajax
-                        url: feature.get('href')
-                        cache: false
-                        dataType: 'html'
-                        success: (data, textStatus, jqXHR) ->
-                            htmlData = $.parseHTML data
-                            if htmlData.length > 1
-                                # multiple html elements returned, wrap them
-                                htmlData = $('<div>').html(htmlData)
-                            title = htmlData.children('h1,h2,h3,h4,h5,h6').first()
-                            if title
-                                htmlData.detach('h1:first,h2:first,h3:first,h4:first,h5:first,h6:first')
-                            popupOverlay.setPosition e.coordinate
-                            $popupElement.popover
-                                placement: 'top'
-                                html: 'true'
-                                container: 'body'
-                                content: htmlData
-                                title: title
-                            $popupElement.popover 'show'
-                        error: (jqXHR, textStatus, errorThrown) ->
-                            $contentElement.html($('<div>').attr 'class': 'ol-popup-loading-error')
-                else
-                    $popupElement.popover 'destroy'
-                return
-
-            map.on 'pointermove', (e) =>
-                if e.dragging
-                    map.getTarget().style.cursor = 'move'
-                else
-                    pixel = map.getEventPixel e.originalEvent
-                    feature = map.forEachFeatureAtPixel pixel, (feature, layer) => feature
-                    if feature and feature.get('href')
-                        map.getTarget().style.cursor = 'pointer'
-                    else
-                        map.getTarget().style.cursor = ''
-                return
-            map
+            return

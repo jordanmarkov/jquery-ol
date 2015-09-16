@@ -62,11 +62,13 @@
     </ol-layer>
 
     <ol-layer type="vector" style-id="track-style" name="dynamic">
-        <ol-source type="vector" format="geojson" projection="EPSG:4326" src="features.json">
+        <ol-source type="vector" format="geojson" projection="EPSG:4326" src="features.json" refresh_="1000">
             <!-- strategies are available for AJAX loaded data only -->
-            <ol-strategy type="all"></ol-strategy>
-            <!--ol-strategy type="bbox"></ol-strategy>
-            <ol-strategy type="fixed">-180, -85.06, 180, 85.06</ol-strategy-->
+            <!--ol-strategy type="all"></ol-strategy-->
+            <ol-strategy type="bbox"></ol-strategy>
+            <!--ol-strategy type="fixed">23, 42, 24, 43</ol-strategy-->
+            <ol-property name="start">0</ol-property>
+            <ol-property name="end">0</ol-property>
         </ol-source>
     </ol-layer>
     <!--ol-layer type="vector" style-id="track-style" name="dynamic">

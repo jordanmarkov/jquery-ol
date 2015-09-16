@@ -18,7 +18,7 @@
             # wait for loading to complete and then resolve
             timer = setInterval (=>
                 if not @_olLoading
-                    console.log "stop waiting..."
+                    #console.log "stop waiting..."
                     clearInterval timer
                     deferred.resolve(this)
                 return
@@ -42,12 +42,12 @@
 
             setTimeout (=>
                 @loadJs(jsUrl).done =>
-                    console.log "OpenLayers loaded #{ ol }"
+                    #console.log "OpenLayers loaded #{ ol }"
                     deferred.resolve(ol)
                 @loadCss cssUrl
             ), 0
         else
-            console.log "OpenLayers already loaded"
+            #console.log "OpenLayers already loaded"
             deferred.resolve(ol)
 
         deferred
