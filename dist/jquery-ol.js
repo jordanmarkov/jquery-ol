@@ -1192,24 +1192,27 @@
       }
     };
     $.fn.jqOpenLayers = function(options) {
-      var _arguments, deferred;
+      var _arguments;
       _arguments = arguments;
-      deferred = $.Deferred();
+      if (exported[options] && exported[options] !== 'init') {
+        if ($(this).length !== 1) {
+          $.error("Cannot invoke the method '" + options + "' on multiple elements");
+        } else {
+          return exported[options].apply(this, Array.prototype.slice.call(_arguments, 1));
+        }
+      }
       geoLib.loadOpenLayers().then((function(_this) {
         return function() {
           return _this.each(function() {
-            if (exported[options]) {
-              return deferred.resolve(exported[options].apply(this, Array.prototype.slice.call(_arguments, 1)));
-            } else if (typeof options === 'object' || !options) {
-              return deferred.resolve(exported['init'].apply(this, options));
+            if (typeof options === 'object' || !options || (exported[options] && exported[options] === 'init')) {
+              return exported['init'].apply(this, options);
             } else {
-              $.error("The method '" + options + "' does not exist on jQuery.jqOpenLayers");
-              return deferred.reject();
+              return $.error("The method '" + options + "' does not exist on jQuery.jqOpenLayers");
             }
           });
         };
       })(this));
-      return deferred;
+      return $(this);
     };
     $.fn.jqOpenLayers.defaults = {
       projection: null,

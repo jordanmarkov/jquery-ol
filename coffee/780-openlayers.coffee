@@ -20,18 +20,19 @@
 
     $.fn.jqOpenLayers = (options) ->
         _arguments = arguments
-        deferred = $.Deferred()
+        if exported[options] and exported[options] != 'init'
+            if $(this).length != 1
+                $.error "Cannot invoke the method '#{ options }' on multiple elements"
+            else
+                return exported[options].apply this, Array.prototype.slice.call(_arguments, 1)
+
         geoLib.loadOpenLayers().then =>
-            #console.log "(#{ options }): ol should be available now!"
             @each ->
-                if exported[options]
-                    deferred.resolve(exported[options].apply this, Array.prototype.slice.call(_arguments, 1))
-                else if typeof options is 'object' or not options
-                    deferred.resolve(exported['init'].apply this, options)
+                if typeof options is 'object' or not options or (exported[options] and exported[options] == 'init')
+                    exported['init'].apply this, options
                 else
                     $.error "The method '#{ options }' does not exist on jQuery.jqOpenLayers"
-                    deferred.reject()
-        deferred
+        return $(this)
 
     $.fn.jqOpenLayers.defaults =
         projection: null
