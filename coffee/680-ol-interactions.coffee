@@ -9,15 +9,15 @@ class OlInteractions
         return
 
     dragCursor: ->
-        _map.on 'moveend', (e) =>
+        _map.on 'moveend', (e) ->
             $(_map.getTarget()).css cursor: ''
             return
 
-        _map.on 'pointerdrag', (e) =>
+        _map.on 'pointerdrag', (e) ->
             $(_map.getTarget()).css cursor: 'move'
             return
 
-        _map.on 'pointermove', (e) =>
+        _map.on 'pointermove', (e) ->
             if e.dragging
                 $(_map.getTarget()).css cursor: 'move'
             return
@@ -26,9 +26,9 @@ class OlInteractions
 
     hoverCursor: (_options) ->
         options = $.extend {}, _deafultHoverOptions, _options
-        _map.on 'pointermove', (e) =>
+        _map.on 'pointermove', (e) ->
             pixel = _map.getEventPixel e.originalEvent
-            feature = _map.forEachFeatureAtPixel pixel, (feature, layer) => feature
+            feature = _map.forEachFeatureAtPixel pixel, (feature, layer) -> feature
             if feature
                 if options.onTooltipAvailable and feature.get('tooltip')
                     $(_map.getTarget()).css cursor: options.onTooltipAvailable
@@ -50,9 +50,9 @@ class OlInteractions
 
         _map.addOverlay popupOverlay
 
-        _map.on 'click', (e) =>
+        _map.on 'click', (e) ->
             pixel = _map.getEventPixel e.originalEvent
-            feature = _map.forEachFeatureAtPixel pixel, (feature, layer) => feature
+            feature = _map.forEachFeatureAtPixel pixel, (feature, layer) -> feature
             if feature and feature.get('href')
                 $.ajax
                     url: feature.get('href')
@@ -91,9 +91,9 @@ class OlInteractions
         _map.addOverlay tooltipOverlay
 
         tooltipShown = null
-        _map.on 'pointermove', (e) =>
+        _map.on 'pointermove', (e) ->
             pixel = _map.getEventPixel e.originalEvent
-            feature = _map.forEachFeatureAtPixel pixel, (feature, layer) => feature
+            feature = _map.forEachFeatureAtPixel pixel, (feature, layer) -> feature
             if not feature
                 if tooltipShown
                     $tooltipElement.tooltip 'destroy'
@@ -138,7 +138,7 @@ class OlInteractions
                         title: tooltipContent
                     $tooltipElement.tooltip 'show'
                 if tooltipShown
-                    $tooltipElement.one 'hidden.bs.tooltip', =>
+                    $tooltipElement.one 'hidden.bs.tooltip', ->
                         $tooltipElement.tooltip 'destroy'
                         setTimeout changeTooltop, 200
                     $tooltipElement.tooltip 'hide'

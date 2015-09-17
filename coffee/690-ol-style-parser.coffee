@@ -5,34 +5,41 @@ class OlStyleParser
         if not $element? or $element.length == 0
             return
         else
-            new ol.style.Fill color: $element.attr('color') or throw "Fill color is required"
+            new ol.style.Fill color: $element.attr('color') or throw new Error("Fill color is required")
 
     _parseStrokeStyle: ($element) ->
         if not $element? or $element.length == 0
             return
         else
             properties =
-                color: $element.attr('color') or throw "Stroke color is required"
-                width: parseFloat $element.attr('width') or throw "Stroke width is required"
+                color: $element.attr('color') or throw new Error("Stroke color is required")
+                width: parseFloat $element.attr('width') or throw new Error("Stroke width is required")
             $element.children('ol-property').each ->
                 key = $(this).attr('name')
                 val = $(this).text()
                 val = switch key
                     when 'miterLimit' then parseFloat(val)
                     when 'lineCap' then (
-                        if val in ['butt', 'round', 'square'] then val else throw "Usupported lineCap value: '#{ val }'. Supported are 'butt', 'round' or 'square'."
+                        if val in ['butt', 'round', 'square']
+                            val
+                        else
+                            throw new Error("Usupported lineCap value: '#{ val }'. " +
+                                "Supported are 'butt', 'round' or 'square'.")
                     )
                     when 'lineJoin' then (
-                        if val in ['bevel', 'round', 'miter'] then val else throw "Usupported lineJoin value: '#{ val }'. Supported are 'bevel', 'round' or 'miter'."
+                        if val in ['bevel', 'round', 'miter']
+                            val
+                        else throw new Error("Usupported lineJoin value: '#{ val }'. " +
+                            "Supported are 'bevel', 'round' or 'miter'.")
                     )
                     when 'lineDash' then (parseFloat(p) for p in val.split(','))
-                    else throw "Usupported stroke property: '#{ key }'"
+                    else throw new Error("Usupported stroke property: '#{ key }'")
                 properties[key] = val
             new ol.style.Stroke properties
 
     _getCircleProperties: ($element) ->
         properties =
-            radius: parseFloat($element.attr('radius')) or throw "Radius is required"
+            radius: parseFloat($element.attr('radius')) or throw new Error("Radius is required")
             snaptopixel: $element.attr('snaptopixel') != 'false'
             fill: @_parseFillStyle $element.children('ol-fill')
             stroke: @_parseStrokeStyle $element.children('ol-stroke')
@@ -40,7 +47,7 @@ class OlStyleParser
 
     _getIconProperties: ($element) ->
         properties =
-            src: $element.attr('src') or throw "Icon source is required"
+            src: $element.attr('src') or throw new Error("Icon source is required")
             snaptopixel: $element.attr('snaptopixel') != 'false'
         $element.children('ol-property').each ->
             key = $(this).attr('name')
@@ -57,13 +64,13 @@ class OlStyleParser
                 when 'anchorYUnits' then val
                 when 'crossOrigin' then val
                 when 'offsetOrigin' then val
-                else throw "Usupported icon property: '#{ key }'"
+                else throw new Error("Usupported icon property: '#{ key }'")
             properties[key] = val
         properties
 
     _getRegularShapeProperties: ($element) ->
         properties =
-            radius: parseFloat($element.attr('radius')) or throw "Radius is required"
+            radius: parseFloat($element.attr('radius')) or throw new Error("Radius is required")
             snaptopixel: $element.attr('snaptopixel') != 'false'
             fill: @_parseFillStyle $element.children('ol-fill')
             stroke: @_parseStrokeStyle $element.children('ol-stroke')
@@ -76,7 +83,7 @@ class OlStyleParser
                 when 'radius2' then parseFloat(val)
                 when 'angle' then parseFloat(val)
                 when 'rotation' then parseFloat(val)
-                else throw "Usupported regular shape property: '#{ key }'"
+                else throw new Error("Usupported regular shape property: '#{ key }'")
             properties[key] = val
         properties
 
@@ -84,12 +91,12 @@ class OlStyleParser
         if not $element? or $element.length == 0
             return
         else
-            if $element.length != 1 then throw "Expected exactly 1 image style, #{ $element.length } given."
+            if $element.length != 1 then throw new Error("Expected exactly 1 image style, #{ $element.length } given.")
             switch $element.attr('type')
                 when 'circle' then new ol.style.Circle @_getCircleProperties($element)
                 when 'icon' then new ol.style.Icon @_getIconProperties($element)
                 when 'regular-shape' then new ol.style.RegularShape @_getRegularShapeProperties($element)
-                else throw "Usupported image type. Supported are 'circle', 'icon' or 'regular-shape'."
+                else throw new Error("Usupported image type. Supported are 'circle', 'icon' or 'regular-shape'.")
 
     _parseSymbolizer: ($element) ->
         new ol.style.Style
@@ -105,7 +112,7 @@ class OlStyleParser
             when $element.attr 'gte' then (zoom) -> zoom >= parseFloat($element.attr 'gte')
             when $element.attr 'eq' then (zoom) -> zoom == parseFloat($element.attr 'eq')
             when $element.attr 'ne' then (zoom) -> zoom != parseFloat($element.attr 'ne')
-            else throw "None of the supported operators found: 'lt', 'lte', 'gt', 'gte', 'eq' or 'ne'."
+            else throw new Error("None of the supported operators found: 'lt', 'lte', 'gt', 'gte', 'eq' or 'ne'.")
         return {
             predicate: predicate
             style: @_parseSymbolizer $element
@@ -120,14 +127,14 @@ class OlStyleParser
             style: @_parseSymbolizer $element
 
         #(feature, resolution) => [@_parseSymbolizer $element]
-        (feature, resolution) =>
+        (feature, resolution) ->
             style = (sym.style for sym in symbolizers when sym.predicate(resolution))
             style[...1]
 
     parseStyles: ($element) ->
         $element.children('ol-style').each (idx, styleElement) =>
             $this = $(styleElement)
-            name = $this.attr('name') or throw "Style name is required"
+            name = $this.attr('name') or throw new Error("Style name is required")
             _styleCache[name] = @_parseStyle $this
             return
 
@@ -135,4 +142,4 @@ class OlStyleParser
         if name of _styleCache
             _styleCache[name]
         else
-            throw "Unknown style name: '#{ name }'"
+            throw new Error("Unknown style name: '#{ name }'")

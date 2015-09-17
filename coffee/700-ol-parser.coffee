@@ -26,7 +26,8 @@ class OlParser
 
     _parseVectorStrategy: ($element) ->
         $strategyElement = $element.children('ol-strategy')
-        if $strategyElement.length > 1 then throw "Expected 0 or 1 strategies, #{ $strategyElement.length } given."
+        if $strategyElement.length > 1
+            throw new Error("Expected 0 or 1 strategies, #{ $strategyElement.length } given.")
 
         $this = $strategyElement
         if $this.length == 0 or $this.attr('type') == 'all'
@@ -35,7 +36,7 @@ class OlParser
             switch $this.attr 'type'
                 when 'bbox' then ol.loadingstrategy.bbox
                 when 'fixed' then @_parseFixedStrategy $this
-                else throw "Usupported strategy type: '#{ $this.attr 'type' }'"
+                else throw new Error("Usupported strategy type: '#{ $this.attr 'type' }'")
 
     _parseGeoJsonSourceProperties: ($element) ->
         properties = { }
@@ -43,9 +44,9 @@ class OlParser
             key = $(this).attr('name')
             val = $(this).text()
             if not key
-                throw "Property name cannot be empty in source ol-property"
+                throw new Error("Property name cannot be empty in source ol-property")
             if properties[key]?
-                throw "Property name cannot be duplicated in source ol-property"
+                throw new Error("Property name cannot be duplicated in source ol-property")
             properties[key] = val
         properties
 
@@ -54,14 +55,16 @@ class OlParser
             jsonContent = $element.text()
             source = new ol.source.Vector
                 features: new ol.format.GeoJSON().readFeatures JSON.parse(jsonContent),
-                    dataProjection: $element.attr('projection') or throw "'projection' is required for GeoJson layer"
+                    dataProjection: $element.attr('projection') or
+                        throw new Error("'projection' is required for GeoJson layer")
                     featureProjection: _mapProjection
-            source.oljq_refresh = =>
+            source.oljq_refresh = ->
                 return
             source
         else
             format = new ol.format.GeoJSON
-                defaultProjection: $element.attr('projection') or throw "'projection' is required for GeoJson layer"
+                defaultProjection: $element.attr('projection') or
+                    throw new Error("'projection' is required for GeoJson layer")
             that = this
             loader = (extent, resolution, projection) ->
                 layerSource = @
@@ -96,12 +99,13 @@ class OlParser
             if $element.attr('refresh')?
                 refreshInterval = parseInt($element.attr('refresh'), 10)
                 if refreshInterval > 0
-                    setInterval (=>
+                    setInterval (->
                         view = _map.getView()
-                        loader.call(source, view.calculateExtent(_map.getSize()), view.getResolution(), view.getProjection())
+                        loader.call(source, view.calculateExtent(_map.getSize()),
+                            view.getResolution(), view.getProjection())
                     ), refreshInterval
 
-            source.oljq_refresh = =>
+            source.oljq_refresh = ->
                 if not _map?
                     return
                 view = _map.getView()
@@ -112,17 +116,19 @@ class OlParser
 
     _parseVectorSource: ($element) ->
         $sourceElement = $element.children('ol-source')
-        if $sourceElement.length != 1 then throw "Expected exactly 1 source, #{ $sourceElement.length } given."
+        if $sourceElement.length != 1
+            throw new Error("Expected exactly 1 source, #{ $sourceElement.length } given.")
 
         $this = $sourceElement
-        if $this.attr('type') != 'vector' then throw "Usupported vector source type: '#{ $this.attr 'type' }'"
+        if $this.attr('type') != 'vector'
+            throw new Error("Usupported vector source type: '#{ $this.attr 'type' }'")
 
         source = switch $this.attr 'format'
             when 'geojson' then @_parseGeoJsonSource $this
             when 'inline' then @_parseInlineSource $this
-            else throw "Usupported vector source format type: '#{ $this.attr 'format' }'"
+            else throw new Error("Usupported vector source format type: '#{ $this.attr 'format' }'")
 
-        source.oljq_refresh = =>
+        source.oljq_refresh = ->
             return
         source
 
@@ -135,29 +141,31 @@ class OlParser
 
     _parseMapQuestSource: ($element) ->
         layerName = $element.attr 'layer'
-        if layerName not in ['osm', 'sat', 'hyb'] then throw "Unsupported MapQuest layer: '#{ layerName }'. Valid options are 'osm', 'sat' or 'hyb'."
+        if layerName not in ['osm', 'sat', 'hyb']
+            throw new Error("Unsupported MapQuest layer: '#{ layerName }'. Valid options are 'osm', 'sat' or 'hyb'.")
         source = new ol.source.MapQuest layer: layerName
-        source.oljq_refresh = =>
+        source.oljq_refresh = ->
             return
         source
 
     _parseOSMSource: ($element) ->
         urlFormat = $element.attr 'url-format' or undefined
         source = new ol.source.OSM url: urlFormat
-        source.oljq_refresh = =>
+        source.oljq_refresh = ->
             return
         source
 
     _parseTileSource: ($element) ->
         $sourceElements = $element.children('ol-source')
-        if $sourceElements.length != 1 then throw "Expected exactly 1 source, #{ $sourceElements.length } given."
+        if $sourceElements.length != 1
+            throw new Error("Expected exactly 1 source, #{ $sourceElements.length } given.")
 
         $this = $($sourceElements[0])
         source = switch $this.attr 'type'
             when 'mapQuest' then @_parseMapQuestSource $this
             when 'osm' then @_parseOSMSource $this
-            else throw "Usupported tile source type: '#{ $this.attr 'type' }'"
-        source.oljq_refresh = =>
+            else throw new Error("Usupported tile source type: '#{ $this.attr 'type' }'")
+        source.oljq_refresh = ->
             return
         source
 
@@ -173,7 +181,7 @@ class OlParser
             layer = switch $this.attr 'type'
                 when 'vector' then @_parseVectorLayer $this
                 when 'tile' then @_parseTileLayer $this
-                else throw "Usupported layer type: '#{ $this.attr 'type' }'"
+                else throw new Error("Usupported layer type: '#{ $this.attr 'type' }'")
             layers.push layer
             @_addLayer layer
             return
@@ -181,7 +189,7 @@ class OlParser
 
     _parseView: ($element) ->
         $viewElements = $element.children('ol-view')
-        if $viewElements.length != 1 then throw "Expected exactly 1 view, #{ $viewElements.length } given."
+        if $viewElements.length != 1 then throw new Error("Expected exactly 1 view, #{ $viewElements.length } given.")
         $this = $($viewElements[0])
 
         properties = { }
@@ -206,11 +214,13 @@ class OlParser
                 when 'rotation' then parseFloat(val)
                 when 'zoom' then parseInt(val, 10)
                 when 'zoomFactor' then parseFloat(val)
-                else throw "Usupported view property: '#{ key }'"
+                else throw new Error("Usupported view property: '#{ key }'")
             properties[key] = val
         _mapProjection = properties.projection = properties.projection ? _mapProjection
-        if properties.center? then properties.center = ol.proj.transform properties.center, _configProjection, properties.projection
-        if properties.extent? then properties.extent = ol.proj.transformExtent properties.extent, _configProjection, properties.projection
+        if properties.center?
+            properties.center = ol.proj.transform properties.center, _configProjection, properties.projection
+        if properties.extent?
+            properties.extent = ol.proj.transformExtent properties.extent, _configProjection, properties.projection
         new ol.View properties
 
     _getOlConfig: ($element) ->
@@ -220,12 +230,14 @@ class OlParser
                 url: $element.attr 'src'
                 dataType: "xml"
                 cache: true
-                success: (data, textStatus, jqxhr) =>
+                success: (data, textStatus, jqxhr) ->
                     deferred.resolve $(data).children('ol-configuration')
-                error: (jqXHR, textStatus, errorThrown) =>
+                error: (jqXHR, textStatus, errorThrown) ->
                     deferred.reject textStatus
         else
-            deferred.resolve  $($.parseXML $element.children('script[type="application/xml"]').text()).children('ol-configuration')
+            deferred.resolve $(
+                $.parseXML $element.children('script[type="application/xml"]').text()
+            ).children('ol-configuration')
         deferred
 
     getLayers: -> _layers.slice()
@@ -239,8 +251,8 @@ class OlParser
             when element instanceof $ then element
             when typeof element is 'string' then $("#{ element }")
             when @_isDomNode element then $(element)
-            else throw "Unknown element"
-        if $element.length == 0 then throw "Unknown element"
+            else throw new Error("Unknown element")
+        if $element.length == 0 then throw new Error("Unknown element")
 
         _configProjection = if $element.attr 'projection' then $element.attr 'projection' else _configProjection
 
@@ -259,7 +271,7 @@ class OlParser
             interactions.popups()
             interactions.tooltips()
 
-            setTimeout (=>
+            setTimeout (->
                 $element.trigger
                     type: 'jquery-ol.map.initialized'
                     map: map

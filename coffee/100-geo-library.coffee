@@ -41,7 +41,7 @@
             cssUrl ?= 'http://openlayers.org/en/v3.8.2/css/ol.css'
 
             setTimeout (=>
-                @loadJs(jsUrl).done =>
+                @loadJs(jsUrl).done ->
                     #console.log "OpenLayers loaded #{ ol }"
                     deferred.resolve(ol)
                 @loadCss cssUrl

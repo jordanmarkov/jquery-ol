@@ -16,9 +16,9 @@ String::trim ?= -> @.replace(/^\s+|\s+$/g, '')
 #String::trimEnd ?= (s) -> if @.endsWith s then @[...(-s.length)] else @
 
 Array::any ?= (f) ->
-  (return true if f x) for x in @
-  return false
+    (return true if f x) for x in @
+    return false
 
 Array::all ?= (f) ->
-  (return false if not f x) for x in @
-  return true
+    (return false if not f x) for x in @
+    return true
