@@ -52,10 +52,13 @@ class OlParser
     _parseGeoJsonSource: ($element) ->
         if not $element.attr('src')?
             jsonContent = $element.text()
-            new ol.source.Vector
+            source = new ol.source.Vector
                 features: new ol.format.GeoJSON().readFeatures JSON.parse(jsonContent),
                     dataProjection: $element.attr('projection') or throw "'projection' is required for GeoJson layer"
                     featureProjection: _mapProjection
+            source.oljq_refresh = =>
+                return
+            source
         else
             format = new ol.format.GeoJSON
                 defaultProjection: $element.attr('projection') or throw "'projection' is required for GeoJson layer"
@@ -103,6 +106,7 @@ class OlParser
                     return
                 view = _map.getView()
                 loader.call(source, view.calculateExtent(_map.getSize()), view.getResolution(), view.getProjection())
+                return
 
             source
 
@@ -113,10 +117,14 @@ class OlParser
         $this = $sourceElement
         if $this.attr('type') != 'vector' then throw "Usupported vector source type: '#{ $this.attr 'type' }'"
 
-        switch $this.attr 'format'
+        source = switch $this.attr 'format'
             when 'geojson' then @_parseGeoJsonSource $this
             when 'inline' then @_parseInlineSource $this
-            else throw "Usupported vector format type: '#{ $this.attr 'format' }'"
+            else throw "Usupported vector source format type: '#{ $this.attr 'format' }'"
+
+        source.oljq_refresh = =>
+            return
+        source
 
     _parseVectorLayer: ($element) ->
         layerStyleName = $element.attr 'style-id'
@@ -128,21 +136,30 @@ class OlParser
     _parseMapQuestSource: ($element) ->
         layerName = $element.attr 'layer'
         if layerName not in ['osm', 'sat', 'hyb'] then throw "Unsupported MapQuest layer: '#{ layerName }'. Valid options are 'osm', 'sat' or 'hyb'."
-        new ol.source.MapQuest layer: layerName
+        source = new ol.source.MapQuest layer: layerName
+        source.oljq_refresh = =>
+            return
+        source
 
     _parseOSMSource: ($element) ->
         urlFormat = $element.attr 'url-format' or undefined
-        new ol.source.OSM url: urlFormat
+        source = new ol.source.OSM url: urlFormat
+        source.oljq_refresh = =>
+            return
+        source
 
     _parseTileSource: ($element) ->
         $sourceElements = $element.children('ol-source')
         if $sourceElements.length != 1 then throw "Expected exactly 1 source, #{ $sourceElements.length } given."
 
         $this = $($sourceElements[0])
-        switch $this.attr 'type'
+        source = switch $this.attr 'type'
             when 'mapQuest' then @_parseMapQuestSource $this
             when 'osm' then @_parseOSMSource $this
             else throw "Usupported tile source type: '#{ $this.attr 'type' }'"
+        source.oljq_refresh = =>
+            return
+        source
 
     _parseTileLayer: ($element) ->
         new ol.layer.Tile
