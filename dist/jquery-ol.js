@@ -817,7 +817,7 @@
       var format, jsonContent, loader, refreshInterval, source, strategy, that;
       if ($element.attr('src') == null) {
         jsonContent = $element.text();
-        return new ol.source.Vector({
+        source = new ol.source.Vector({
           features: new ol.format.GeoJSON().readFeatures(JSON.parse(jsonContent), {
             dataProjection: $element.attr('projection') || (function() {
               throw "'projection' is required for GeoJson layer";
@@ -825,6 +825,10 @@
             featureProjection: _mapProjection
           })
         });
+        source.oljq_refresh = (function(_this) {
+          return function() {};
+        })(this);
+        return source;
       } else {
         format = new ol.format.GeoJSON({
           defaultProjection: $element.attr('projection') || (function() {
@@ -888,7 +892,7 @@
               return;
             }
             view = _map.getView();
-            return loader.call(source, view.calculateExtent(_map.getSize()), view.getResolution(), view.getProjection());
+            loader.call(source, view.calculateExtent(_map.getSize()), view.getResolution(), view.getProjection());
           };
         })(this);
         return source;
@@ -896,7 +900,7 @@
     };
 
     OlParser.prototype._parseVectorSource = function($element) {
-      var $sourceElement, $this;
+      var $sourceElement, $this, source;
       $sourceElement = $element.children('ol-source');
       if ($sourceElement.length !== 1) {
         throw "Expected exactly 1 source, " + $sourceElement.length + " given.";
@@ -905,14 +909,20 @@
       if ($this.attr('type') !== 'vector') {
         throw "Usupported vector source type: '" + ($this.attr('type')) + "'";
       }
-      switch ($this.attr('format')) {
-        case 'geojson':
-          return this._parseGeoJsonSource($this);
-        case 'inline':
-          return this._parseInlineSource($this);
-        default:
-          throw "Usupported vector format type: '" + ($this.attr('format')) + "'";
-      }
+      source = (function() {
+        switch ($this.attr('format')) {
+          case 'geojson':
+            return this._parseGeoJsonSource($this);
+          case 'inline':
+            return this._parseInlineSource($this);
+          default:
+            throw "Usupported vector source format type: '" + ($this.attr('format')) + "'";
+        }
+      }).call(this);
+      source.oljq_refresh = (function(_this) {
+        return function() {};
+      })(this);
+      return source;
     };
 
     OlParser.prototype._parseVectorLayer = function($element) {
@@ -926,39 +936,53 @@
     };
 
     OlParser.prototype._parseMapQuestSource = function($element) {
-      var layerName;
+      var layerName, source;
       layerName = $element.attr('layer');
       if (layerName !== 'osm' && layerName !== 'sat' && layerName !== 'hyb') {
         throw "Unsupported MapQuest layer: '" + layerName + "'. Valid options are 'osm', 'sat' or 'hyb'.";
       }
-      return new ol.source.MapQuest({
+      source = new ol.source.MapQuest({
         layer: layerName
       });
+      source.oljq_refresh = (function(_this) {
+        return function() {};
+      })(this);
+      return source;
     };
 
     OlParser.prototype._parseOSMSource = function($element) {
-      var urlFormat;
+      var source, urlFormat;
       urlFormat = $element.attr('url-format' || void 0);
-      return new ol.source.OSM({
+      source = new ol.source.OSM({
         url: urlFormat
       });
+      source.oljq_refresh = (function(_this) {
+        return function() {};
+      })(this);
+      return source;
     };
 
     OlParser.prototype._parseTileSource = function($element) {
-      var $sourceElements, $this;
+      var $sourceElements, $this, source;
       $sourceElements = $element.children('ol-source');
       if ($sourceElements.length !== 1) {
         throw "Expected exactly 1 source, " + $sourceElements.length + " given.";
       }
       $this = $($sourceElements[0]);
-      switch ($this.attr('type')) {
-        case 'mapQuest':
-          return this._parseMapQuestSource($this);
-        case 'osm':
-          return this._parseOSMSource($this);
-        default:
-          throw "Usupported tile source type: '" + ($this.attr('type')) + "'";
-      }
+      source = (function() {
+        switch ($this.attr('type')) {
+          case 'mapQuest':
+            return this._parseMapQuestSource($this);
+          case 'osm':
+            return this._parseOSMSource($this);
+          default:
+            throw "Usupported tile source type: '" + ($this.attr('type')) + "'";
+        }
+      }).call(this);
+      source.oljq_refresh = (function(_this) {
+        return function() {};
+      })(this);
+      return source;
     };
 
     OlParser.prototype._parseTileLayer = function($element) {
