@@ -69,7 +69,10 @@ class OlParser
             loader = (extent, resolution, projection) ->
                 layerSource = @
                 projectionString = projection.getCode()
-                extent = if extent.any((c) -> c == Infinity or c == -Infinity) then projection.getExtent() else extent
+                extent = if extent.any((c) -> c == Infinity or c == -Infinity)
+                    projection.getExtent()
+                else
+                    extent
                 ajaxData = $.extend {}, layerSource.getProperties(), {
                     srs: projectionString
                     extent: extent.join(',')
