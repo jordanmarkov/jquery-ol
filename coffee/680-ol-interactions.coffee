@@ -136,7 +136,7 @@ class OlInteractions
             feature = _map.forEachFeatureAtPixel pixel, (feature, layer) -> feature
 
             if not feature or feature == _popupFeature
-                $tooltipElement.tooltip 'destroy'
+                $tooltipElement.tooltip 'hide'
                 tooltipShown = null
             else
                 tooltipText = _getFeatureTooltipText(feature)
