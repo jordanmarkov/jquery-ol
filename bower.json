@@ -1,6 +1,6 @@
 {
   "name": "jquery-ol",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "main": "dist/jquery-pl.min.js",
   "authors": [
     "Jordan Markov <jmarkov@gmail.com>"
