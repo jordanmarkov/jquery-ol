@@ -195,7 +195,7 @@
   };
 
   OlInteractions = (function() {
-    var _deafultHoverOptions, _map;
+    var _deafultHoverOptions, _getFeatureTooltipText, _map;
 
     _map = null;
 
@@ -310,84 +310,73 @@
       });
     };
 
+    _getFeatureTooltipText = function(feature) {
+      var fn, fnText, propName, tooltipTemplate;
+      if (!feature.get('_tooltipFun')) {
+        tooltipTemplate = feature.get('tooltip');
+        if (tooltipTemplate.startsWith('prop:')) {
+          propName = tooltipTemplate.slice(5);
+          feature.set('_tooltipFun', function(f) {
+            return f.get(propName) || '';
+          });
+        } else if (tooltipTemplate.startsWith('fn:')) {
+          fnText = tooltipTemplate.slice(3);
+          fn = eval("(" + fnText + ")");
+          feature.set('_tooltipFun', function(f) {
+            return fn.call(f, f);
+          });
+        } else {
+          feature.set('_tooltipFun', function(f) {
+            return tooltipTemplate;
+          });
+        }
+      }
+      return feature.get('_tooltipFun').call(feature, feature);
+    };
+
     OlInteractions.prototype.tooltips = function() {
-      var $tooltipElement, tooltipOverlay, tooltipShown;
+      var $tooltipElement, tooltipShown;
       $tooltipElement = $('<div>').appendTo($(_map.getTarget()));
-      tooltipOverlay = new ol.Overlay({
-        element: $tooltipElement[0],
-        positioning: 'top-center',
-        stopEvent: false
+      $tooltipElement.css({
+        position: 'absolute'
       });
-      _map.addOverlay(tooltipOverlay);
+      $tooltipElement.tooltip({
+        animation: false,
+        delay: {
+          show: 0,
+          hide: 0
+        },
+        html: true,
+        placement: 'top',
+        trigger: 'manual'
+      });
       tooltipShown = null;
       _map.on('pointermove', function(e) {
-        var changeTooltop, coords, feature, fn, fnText, geom, pixel, propName, tooltip, tooltipContent, tooltipFn, tooltipTemplate;
+        var feature, pixel, tooltipText;
         pixel = _map.getEventPixel(e.originalEvent);
         feature = _map.forEachFeatureAtPixel(pixel, function(feature, layer) {
           return feature;
         });
         if (!feature) {
-          if (tooltipShown) {
-            $tooltipElement.tooltip('destroy');
-            tooltipShown = null;
-          }
-          return;
-        }
-        tooltip = feature.get('tooltip');
-        tooltipFn = feature.get('_tooltipFun');
-        if (!tooltip) {
-          if (tooltipShown) {
-            $tooltipElement.tooltip('destroy');
-            tooltipShown = null;
-          }
-          return;
-        }
-        if (tooltipShown !== feature) {
-          geom = feature.getGeometry();
-          coords = geom.getType() === 'Point' ? geom.getCoordinates() : e.coordinate;
-          tooltipOverlay.setPosition(coords);
-          if (feature.get('_tooltipFun')) {
-            tooltipContent = feature.get('_tooltipFun').call(feature, feature);
+          $tooltipElement.tooltip('destroy');
+          tooltipShown = null;
+        } else {
+          tooltipText = _getFeatureTooltipText(feature);
+          if (tooltipText) {
+            $tooltipElement.css({
+              left: pixel[0] + "px",
+              top: (pixel[1] - 15) + "px"
+            });
+            $tooltipElement.attr({
+              'data-original-title': tooltipText
+            });
+            $tooltipElement.tooltip('fixTitle');
+            $tooltipElement.tooltip('show');
+            tooltipShown = feature;
           } else {
-            tooltipTemplate = feature.get('tooltip');
-            if (tooltipTemplate.startsWith('prop:')) {
-              propName = tooltipTemplate.slice(5);
-              feature.set('_tooltipFun', function(f) {
-                return f.get(propName);
-              });
-            } else if (tooltipTemplate.startsWith('fn:')) {
-              fnText = tooltipTemplate.slice(3);
-              fn = eval("(" + fnText + ")");
-              feature.set('_tooltipFun', function(f) {
-                return fn.call(f, f);
-              });
-            } else {
-              feature.set('_tooltipFun', function(f) {
-                return tooltipTemplate;
-              });
-            }
-            tooltipContent = feature.get('_tooltipFun').call(feature, feature);
-          }
-          changeTooltop = function() {
-            $tooltipElement.tooltip({
-              trigger: 'manual',
-              placement: 'top',
-              html: true,
-              container: 'body',
-              title: tooltipContent
-            });
-            return $tooltipElement.tooltip('show');
-          };
-          if (tooltipShown) {
-            $tooltipElement.one('hidden.bs.tooltip', function() {
-              $tooltipElement.tooltip('destroy');
-              return setTimeout(changeTooltop, 200);
-            });
             $tooltipElement.tooltip('hide');
-          } else {
-            changeTooltop();
+            tooltipShown = null;
           }
-          tooltipShown = feature;
         }
       });
     };

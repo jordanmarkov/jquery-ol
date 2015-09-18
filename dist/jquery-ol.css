@@ -3,4 +3,7 @@ ol-style,
 ol-layer {
   display: none;
 }
+.map > .tooltip {
+  transition: none !important;
+}
 /*# sourceMappingURL=jquery-ol.css.map */
