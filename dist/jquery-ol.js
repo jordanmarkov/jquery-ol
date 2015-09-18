@@ -195,7 +195,7 @@
   };
 
   OlInteractions = (function() {
-    var _deafultHoverOptions, _getFeatureTooltipText, _map;
+    var _deafultHoverOptions, _getFeatureTooltipText, _map, _popupFeature;
 
     _map = null;
 
@@ -260,6 +260,8 @@
       });
     };
 
+    _popupFeature = null;
+
     OlInteractions.prototype.popups = function() {
       var $popupElement, popupOverlay;
       $popupElement = $('<div>').appendTo($(_map.getTarget()));
@@ -298,14 +300,20 @@
                 content: htmlData,
                 title: title
               });
-              return $popupElement.popover('show');
+              $popupElement.on('hidden.bs.modal', function() {
+                return _popupFeature = null;
+              });
+              $popupElement.popover('show');
+              return _popupFeature = feature;
             },
             error: function(jqXHR, textStatus, errorThrown) {
-              return $popupElement.popover('destroy');
+              $popupElement.popover('destroy');
+              return _popupFeature = null;
             }
           });
         } else {
           $popupElement.popover('destroy');
+          _popupFeature = null;
         }
       });
     };
@@ -357,7 +365,7 @@
         feature = _map.forEachFeatureAtPixel(pixel, function(feature, layer) {
           return feature;
         });
-        if (!feature) {
+        if (!feature || feature === _popupFeature) {
           $tooltipElement.tooltip('destroy');
           tooltipShown = null;
         } else {

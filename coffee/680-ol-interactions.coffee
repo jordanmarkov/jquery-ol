@@ -41,6 +41,9 @@ class OlInteractions
             return
         return
 
+    # will be used to prevent the tooltip of features with active popup
+    _popupFeature = null
+
     popups: ->
         $popupElement = $('<div>').appendTo($(_map.getTarget()))
         popupOverlay = new ol.Overlay
@@ -73,11 +76,16 @@ class OlInteractions
                             container: 'body'
                             content: htmlData
                             title: title
+                        $popupElement.on 'hidden.bs.modal', ->
+                            _popupFeature = null
                         $popupElement.popover 'show'
+                        _popupFeature = feature
                     error: (jqXHR, textStatus, errorThrown) ->
                         $popupElement.popover 'destroy'
+                        _popupFeature = null
             else
                 $popupElement.popover 'destroy'
+                _popupFeature = null
             return
         return
 
@@ -127,8 +135,7 @@ class OlInteractions
             pixel = _map.getEventPixel e.originalEvent
             feature = _map.forEachFeatureAtPixel pixel, (feature, layer) -> feature
 
-            # TODO: it would be nice to know if a popup is active and disable the tooltip
-            if not feature
+            if not feature or feature == _popupFeature
                 $tooltipElement.tooltip 'destroy'
                 tooltipShown = null
             else
