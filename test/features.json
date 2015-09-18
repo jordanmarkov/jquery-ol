@@ -34,7 +34,7 @@
         "id": "3",
         "properties": {
             "name": "POI name 2",
-            "tooltip": "Just a line"
+            "tooltip": "Just a <i>line</i>"
         },
         "type": "Feature"
     }],

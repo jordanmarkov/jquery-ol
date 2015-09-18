@@ -366,7 +366,7 @@
           return feature;
         });
         if (!feature || feature === _popupFeature) {
-          $tooltipElement.tooltip('destroy');
+          $tooltipElement.tooltip('hide');
           tooltipShown = null;
         } else {
           tooltipText = _getFeatureTooltipText(feature);
