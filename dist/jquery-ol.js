@@ -210,62 +210,54 @@
     }
 
     OlInteractions.prototype.dragCursor = function() {
-      _map.on('moveend', (function(_this) {
-        return function(e) {
-          $(_map.getTarget()).css({
-            cursor: ''
-          });
-        };
-      })(this));
-      _map.on('pointerdrag', (function(_this) {
-        return function(e) {
+      _map.on('moveend', function(e) {
+        $(_map.getTarget()).css({
+          cursor: ''
+        });
+      });
+      _map.on('pointerdrag', function(e) {
+        $(_map.getTarget()).css({
+          cursor: 'move'
+        });
+      });
+      _map.on('pointermove', function(e) {
+        if (e.dragging) {
           $(_map.getTarget()).css({
             cursor: 'move'
           });
-        };
-      })(this));
-      _map.on('pointermove', (function(_this) {
-        return function(e) {
-          if (e.dragging) {
-            $(_map.getTarget()).css({
-              cursor: 'move'
-            });
-          }
-        };
-      })(this));
+        }
+      });
     };
 
     OlInteractions.prototype.hoverCursor = function(_options) {
       var options;
       options = $.extend({}, _deafultHoverOptions, _options);
-      _map.on('pointermove', (function(_this) {
-        return function(e) {
-          var feature, pixel;
-          pixel = _map.getEventPixel(e.originalEvent);
-          feature = _map.forEachFeatureAtPixel(pixel, function(feature, layer) {
-            return feature;
-          });
-          if (feature) {
-            if (options.onTooltipAvailable && feature.get('tooltip')) {
-              $(_map.getTarget()).css({
-                cursor: options.onTooltipAvailable
-              });
-            } else if (options.onPopupAvailabe && feature.get('href')) {
-              $(_map.getTarget()).css({
-                cursor: options.onPopupAvailabe
-              });
-            } else {
-              $(_map.getTarget()).css({
-                cursor: ''
-              });
-            }
+      _map.on('pointermove', function(e) {
+        var feature, pixel;
+        pixel = _map.getEventPixel(e.originalEvent);
+        feature = _map.forEachFeatureAtPixel(pixel, function(feature, layer) {
+          return feature;
+        });
+        if (feature) {
+          if (options.onTooltipAvailable && feature.get('tooltip')) {
+            $(_map.getTarget()).css({
+              cursor: options.onTooltipAvailable
+            });
+          } else if (options.onPopupAvailabe && feature.get('href')) {
+            $(_map.getTarget()).css({
+              cursor: options.onPopupAvailabe
+            });
           } else {
             $(_map.getTarget()).css({
               cursor: ''
             });
           }
-        };
-      })(this));
+        } else {
+          $(_map.getTarget()).css({
+            cursor: ''
+          });
+        }
+      });
     };
 
     OlInteractions.prototype.popups = function() {
@@ -277,47 +269,45 @@
         stopEvent: false
       });
       _map.addOverlay(popupOverlay);
-      _map.on('click', (function(_this) {
-        return function(e) {
-          var feature, pixel;
-          pixel = _map.getEventPixel(e.originalEvent);
-          feature = _map.forEachFeatureAtPixel(pixel, function(feature, layer) {
-            return feature;
-          });
-          if (feature && feature.get('href')) {
-            $.ajax({
-              url: feature.get('href'),
-              cache: false,
-              dataType: 'html',
-              success: function(data, textStatus, jqXHR) {
-                var htmlData, title;
-                htmlData = $.parseHTML(data);
-                if (htmlData.length > 1) {
-                  htmlData = $('<div>').html(htmlData);
-                }
-                title = htmlData.children('h1,h2,h3,h4,h5,h6').first();
-                if (title) {
-                  htmlData.detach('h1:first,h2:first,h3:first,h4:first,h5:first,h6:first');
-                }
-                popupOverlay.setPosition(e.coordinate);
-                $popupElement.popover({
-                  placement: 'top',
-                  html: true,
-                  container: 'body',
-                  content: htmlData,
-                  title: title
-                });
-                return $popupElement.popover('show');
-              },
-              error: function(jqXHR, textStatus, errorThrown) {
-                return $popupElement.popover('destroy');
+      _map.on('click', function(e) {
+        var feature, pixel;
+        pixel = _map.getEventPixel(e.originalEvent);
+        feature = _map.forEachFeatureAtPixel(pixel, function(feature, layer) {
+          return feature;
+        });
+        if (feature && feature.get('href')) {
+          $.ajax({
+            url: feature.get('href'),
+            cache: false,
+            dataType: 'html',
+            success: function(data, textStatus, jqXHR) {
+              var htmlData, title;
+              htmlData = $.parseHTML(data);
+              if (htmlData.length > 1) {
+                htmlData = $('<div>').html(htmlData);
               }
-            });
-          } else {
-            $popupElement.popover('destroy');
-          }
-        };
-      })(this));
+              title = htmlData.children('h1,h2,h3,h4,h5,h6').first();
+              if (title) {
+                htmlData.detach('h1:first,h2:first,h3:first,h4:first,h5:first,h6:first');
+              }
+              popupOverlay.setPosition(e.coordinate);
+              $popupElement.popover({
+                placement: 'top',
+                html: true,
+                container: 'body',
+                content: htmlData,
+                title: title
+              });
+              return $popupElement.popover('show');
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+              return $popupElement.popover('destroy');
+            }
+          });
+        } else {
+          $popupElement.popover('destroy');
+        }
+      });
     };
 
     OlInteractions.prototype.tooltips = function() {
@@ -330,78 +320,76 @@
       });
       _map.addOverlay(tooltipOverlay);
       tooltipShown = null;
-      _map.on('pointermove', (function(_this) {
-        return function(e) {
-          var changeTooltop, coords, feature, fn, fnText, geom, pixel, propName, tooltip, tooltipContent, tooltipFn, tooltipTemplate;
-          pixel = _map.getEventPixel(e.originalEvent);
-          feature = _map.forEachFeatureAtPixel(pixel, function(feature, layer) {
-            return feature;
-          });
-          if (!feature) {
-            if (tooltipShown) {
-              $tooltipElement.tooltip('destroy');
-              tooltipShown = null;
-            }
-            return;
+      _map.on('pointermove', function(e) {
+        var changeTooltop, coords, feature, fn, fnText, geom, pixel, propName, tooltip, tooltipContent, tooltipFn, tooltipTemplate;
+        pixel = _map.getEventPixel(e.originalEvent);
+        feature = _map.forEachFeatureAtPixel(pixel, function(feature, layer) {
+          return feature;
+        });
+        if (!feature) {
+          if (tooltipShown) {
+            $tooltipElement.tooltip('destroy');
+            tooltipShown = null;
           }
-          tooltip = feature.get('tooltip');
-          tooltipFn = feature.get('_tooltipFun');
-          if (!tooltip) {
-            if (tooltipShown) {
-              $tooltipElement.tooltip('destroy');
-              tooltipShown = null;
-            }
-            return;
+          return;
+        }
+        tooltip = feature.get('tooltip');
+        tooltipFn = feature.get('_tooltipFun');
+        if (!tooltip) {
+          if (tooltipShown) {
+            $tooltipElement.tooltip('destroy');
+            tooltipShown = null;
           }
-          if (tooltipShown !== feature) {
-            geom = feature.getGeometry();
-            coords = geom.getType() === 'Point' ? geom.getCoordinates() : e.coordinate;
-            tooltipOverlay.setPosition(coords);
-            if (feature.get('_tooltipFun')) {
-              tooltipContent = feature.get('_tooltipFun').call(feature, feature);
-            } else {
-              tooltipTemplate = feature.get('tooltip');
-              if (tooltipTemplate.startsWith('prop:')) {
-                propName = tooltipTemplate.slice(5);
-                feature.set('_tooltipFun', function(f) {
-                  return f.get(propName);
-                });
-              } else if (tooltipTemplate.startsWith('fn:')) {
-                fnText = tooltipTemplate.slice(3);
-                fn = eval("(" + fnText + ")");
-                feature.set('_tooltipFun', function(f) {
-                  return fn.call(f, f);
-                });
-              } else {
-                feature.set('_tooltipFun', function(f) {
-                  return tooltipTemplate;
-                });
-              }
-              tooltipContent = feature.get('_tooltipFun').call(feature, feature);
-            }
-            changeTooltop = function() {
-              $tooltipElement.tooltip({
-                trigger: 'manual',
-                placement: 'top',
-                html: true,
-                container: 'body',
-                title: tooltipContent
+          return;
+        }
+        if (tooltipShown !== feature) {
+          geom = feature.getGeometry();
+          coords = geom.getType() === 'Point' ? geom.getCoordinates() : e.coordinate;
+          tooltipOverlay.setPosition(coords);
+          if (feature.get('_tooltipFun')) {
+            tooltipContent = feature.get('_tooltipFun').call(feature, feature);
+          } else {
+            tooltipTemplate = feature.get('tooltip');
+            if (tooltipTemplate.startsWith('prop:')) {
+              propName = tooltipTemplate.slice(5);
+              feature.set('_tooltipFun', function(f) {
+                return f.get(propName);
               });
-              return $tooltipElement.tooltip('show');
-            };
-            if (tooltipShown) {
-              $tooltipElement.one('hidden.bs.tooltip', function() {
-                $tooltipElement.tooltip('destroy');
-                return setTimeout(changeTooltop, 200);
+            } else if (tooltipTemplate.startsWith('fn:')) {
+              fnText = tooltipTemplate.slice(3);
+              fn = eval("(" + fnText + ")");
+              feature.set('_tooltipFun', function(f) {
+                return fn.call(f, f);
               });
-              $tooltipElement.tooltip('hide');
             } else {
-              changeTooltop();
+              feature.set('_tooltipFun', function(f) {
+                return tooltipTemplate;
+              });
             }
-            tooltipShown = feature;
+            tooltipContent = feature.get('_tooltipFun').call(feature, feature);
           }
-        };
-      })(this));
+          changeTooltop = function() {
+            $tooltipElement.tooltip({
+              trigger: 'manual',
+              placement: 'top',
+              html: true,
+              container: 'body',
+              title: tooltipContent
+            });
+            return $tooltipElement.tooltip('show');
+          };
+          if (tooltipShown) {
+            $tooltipElement.one('hidden.bs.tooltip', function() {
+              $tooltipElement.tooltip('destroy');
+              return setTimeout(changeTooltop, 200);
+            });
+            $tooltipElement.tooltip('hide');
+          } else {
+            changeTooltop();
+          }
+          tooltipShown = feature;
+        }
+      });
     };
 
     return OlInteractions;
@@ -421,7 +409,7 @@
       } else {
         return new ol.style.Fill({
           color: $element.attr('color') || (function() {
-            throw "Fill color is required";
+            throw new Error("Fill color is required");
           })()
         });
       }
@@ -434,10 +422,10 @@
       } else {
         properties = {
           color: $element.attr('color') || (function() {
-            throw "Stroke color is required";
+            throw new Error("Stroke color is required");
           })(),
           width: parseFloat($element.attr('width') || (function() {
-            throw "Stroke width is required";
+            throw new Error("Stroke width is required");
           })())
         };
         $element.children('ol-property').each(function() {
@@ -453,13 +441,13 @@
                 if (val === 'butt' || val === 'round' || val === 'square') {
                   return val;
                 } else {
-                  throw "Usupported lineCap value: '" + val + "'. Supported are 'butt', 'round' or 'square'.";
+                  throw new Error(("Usupported lineCap value: '" + val + "'. ") + "Supported are 'butt', 'round' or 'square'.");
                 }
               case 'lineJoin':
                 if (val === 'bevel' || val === 'round' || val === 'miter') {
                   return val;
                 } else {
-                  throw "Usupported lineJoin value: '" + val + "'. Supported are 'bevel', 'round' or 'miter'.";
+                  throw new Error(("Usupported lineJoin value: '" + val + "'. ") + "Supported are 'bevel', 'round' or 'miter'.");
                 }
               case 'lineDash':
                 ref = val.split(',');
@@ -470,7 +458,7 @@
                 }
                 return results;
               default:
-                throw "Usupported stroke property: '" + key + "'";
+                throw new Error("Usupported stroke property: '" + key + "'");
             }
           })();
           return properties[key] = val;
@@ -483,7 +471,7 @@
       var properties;
       properties = {
         radius: parseFloat($element.attr('radius')) || (function() {
-          throw "Radius is required";
+          throw new Error("Radius is required");
         })(),
         snaptopixel: $element.attr('snaptopixel') !== 'false',
         fill: this._parseFillStyle($element.children('ol-fill')),
@@ -496,7 +484,7 @@
       var properties;
       properties = {
         src: $element.attr('src') || (function() {
-          throw "Icon source is required";
+          throw new Error("Icon source is required");
         })(),
         snaptopixel: $element.attr('snaptopixel') !== 'false'
       };
@@ -554,7 +542,7 @@
             case 'offsetOrigin':
               return val;
             default:
-              throw "Usupported icon property: '" + key + "'";
+              throw new Error("Usupported icon property: '" + key + "'");
           }
         })();
         return properties[key] = val;
@@ -566,7 +554,7 @@
       var properties;
       properties = {
         radius: parseFloat($element.attr('radius')) || (function() {
-          throw "Radius is required";
+          throw new Error("Radius is required");
         })(),
         snaptopixel: $element.attr('snaptopixel') !== 'false',
         fill: this._parseFillStyle($element.children('ol-fill')),
@@ -589,7 +577,7 @@
             case 'rotation':
               return parseFloat(val);
             default:
-              throw "Usupported regular shape property: '" + key + "'";
+              throw new Error("Usupported regular shape property: '" + key + "'");
           }
         })();
         return properties[key] = val;
@@ -602,7 +590,7 @@
 
       } else {
         if ($element.length !== 1) {
-          throw "Expected exactly 1 image style, " + $element.length + " given.";
+          throw new Error("Expected exactly 1 image style, " + $element.length + " given.");
         }
         switch ($element.attr('type')) {
           case 'circle':
@@ -612,7 +600,7 @@
           case 'regular-shape':
             return new ol.style.RegularShape(this._getRegularShapeProperties($element));
           default:
-            throw "Usupported image type. Supported are 'circle', 'icon' or 'regular-shape'.";
+            throw new Error("Usupported image type. Supported are 'circle', 'icon' or 'regular-shape'.");
         }
       }
     };
@@ -654,7 +642,7 @@
               return zoom !== parseFloat($element.attr('ne'));
             };
           default:
-            throw "None of the supported operators found: 'lt', 'lte', 'gt', 'gte', 'eq' or 'ne'.";
+            throw new Error("None of the supported operators found: 'lt', 'lte', 'gt', 'gte', 'eq' or 'ne'.");
         }
       })();
       return {
@@ -677,23 +665,21 @@
         },
         style: this._parseSymbolizer($element)
       });
-      return (function(_this) {
-        return function(feature, resolution) {
-          var style, sym;
-          style = (function() {
-            var i, len, results;
-            results = [];
-            for (i = 0, len = symbolizers.length; i < len; i++) {
-              sym = symbolizers[i];
-              if (sym.predicate(resolution)) {
-                results.push(sym.style);
-              }
+      return function(feature, resolution) {
+        var style, sym;
+        style = (function() {
+          var i, len, results;
+          results = [];
+          for (i = 0, len = symbolizers.length; i < len; i++) {
+            sym = symbolizers[i];
+            if (sym.predicate(resolution)) {
+              results.push(sym.style);
             }
-            return results;
-          })();
-          return style.slice(0, 1);
-        };
-      })(this);
+          }
+          return results;
+        })();
+        return style.slice(0, 1);
+      };
     };
 
     OlStyleParser.prototype.parseStyles = function($element) {
@@ -702,7 +688,7 @@
           var $this, name;
           $this = $(styleElement);
           name = $this.attr('name') || (function() {
-            throw "Style name is required";
+            throw new Error("Style name is required");
           })();
           _styleCache[name] = _this._parseStyle($this);
         };
@@ -713,7 +699,7 @@
       if (name in _styleCache) {
         return _styleCache[name];
       } else {
-        throw "Unknown style name: '" + name + "'";
+        throw new Error("Unknown style name: '" + name + "'");
       }
     };
 
@@ -778,7 +764,7 @@
       var $strategyElement, $this;
       $strategyElement = $element.children('ol-strategy');
       if ($strategyElement.length > 1) {
-        throw "Expected 0 or 1 strategies, " + $strategyElement.length + " given.";
+        throw new Error("Expected 0 or 1 strategies, " + $strategyElement.length + " given.");
       }
       $this = $strategyElement;
       if ($this.length === 0 || $this.attr('type') === 'all') {
@@ -790,7 +776,7 @@
           case 'fixed':
             return this._parseFixedStrategy($this);
           default:
-            throw "Usupported strategy type: '" + ($this.attr('type')) + "'";
+            throw new Error("Usupported strategy type: '" + ($this.attr('type')) + "'");
         }
       }
     };
@@ -803,10 +789,10 @@
         key = $(this).attr('name');
         val = $(this).text();
         if (!key) {
-          throw "Property name cannot be empty in source ol-property";
+          throw new Error("Property name cannot be empty in source ol-property");
         }
         if (properties[key] != null) {
-          throw "Property name cannot be duplicated in source ol-property";
+          throw new Error("Property name cannot be duplicated in source ol-property");
         }
         return properties[key] = val;
       });
@@ -820,19 +806,17 @@
         source = new ol.source.Vector({
           features: new ol.format.GeoJSON().readFeatures(JSON.parse(jsonContent), {
             dataProjection: $element.attr('projection') || (function() {
-              throw "'projection' is required for GeoJson layer";
+              throw new Error("'projection' is required for GeoJson layer");
             })(),
             featureProjection: _mapProjection
           })
         });
-        source.oljq_refresh = (function(_this) {
-          return function() {};
-        })(this);
+        source.oljq_refresh = function() {};
         return source;
       } else {
         format = new ol.format.GeoJSON({
           defaultProjection: $element.attr('projection') || (function() {
-            throw "'projection' is required for GeoJson layer";
+            throw new Error("'projection' is required for GeoJson layer");
           })()
         });
         that = this;
@@ -876,25 +860,21 @@
         if ($element.attr('refresh') != null) {
           refreshInterval = parseInt($element.attr('refresh'), 10);
           if (refreshInterval > 0) {
-            setInterval(((function(_this) {
-              return function() {
-                var view;
-                view = _map.getView();
-                return loader.call(source, view.calculateExtent(_map.getSize()), view.getResolution(), view.getProjection());
-              };
-            })(this)), refreshInterval);
+            setInterval((function() {
+              var view;
+              view = _map.getView();
+              return loader.call(source, view.calculateExtent(_map.getSize()), view.getResolution(), view.getProjection());
+            }), refreshInterval);
           }
         }
-        source.oljq_refresh = (function(_this) {
-          return function() {
-            var view;
-            if (_map == null) {
-              return;
-            }
-            view = _map.getView();
-            loader.call(source, view.calculateExtent(_map.getSize()), view.getResolution(), view.getProjection());
-          };
-        })(this);
+        source.oljq_refresh = function() {
+          var view;
+          if (_map == null) {
+            return;
+          }
+          view = _map.getView();
+          loader.call(source, view.calculateExtent(_map.getSize()), view.getResolution(), view.getProjection());
+        };
         return source;
       }
     };
@@ -903,11 +883,11 @@
       var $sourceElement, $this, source;
       $sourceElement = $element.children('ol-source');
       if ($sourceElement.length !== 1) {
-        throw "Expected exactly 1 source, " + $sourceElement.length + " given.";
+        throw new Error("Expected exactly 1 source, " + $sourceElement.length + " given.");
       }
       $this = $sourceElement;
       if ($this.attr('type') !== 'vector') {
-        throw "Usupported vector source type: '" + ($this.attr('type')) + "'";
+        throw new Error("Usupported vector source type: '" + ($this.attr('type')) + "'");
       }
       source = (function() {
         switch ($this.attr('format')) {
@@ -916,12 +896,10 @@
           case 'inline':
             return this._parseInlineSource($this);
           default:
-            throw "Usupported vector source format type: '" + ($this.attr('format')) + "'";
+            throw new Error("Usupported vector source format type: '" + ($this.attr('format')) + "'");
         }
       }).call(this);
-      source.oljq_refresh = (function(_this) {
-        return function() {};
-      })(this);
+      source.oljq_refresh = function() {};
       return source;
     };
 
@@ -939,14 +917,12 @@
       var layerName, source;
       layerName = $element.attr('layer');
       if (layerName !== 'osm' && layerName !== 'sat' && layerName !== 'hyb') {
-        throw "Unsupported MapQuest layer: '" + layerName + "'. Valid options are 'osm', 'sat' or 'hyb'.";
+        throw new Error("Unsupported MapQuest layer: '" + layerName + "'. Valid options are 'osm', 'sat' or 'hyb'.");
       }
       source = new ol.source.MapQuest({
         layer: layerName
       });
-      source.oljq_refresh = (function(_this) {
-        return function() {};
-      })(this);
+      source.oljq_refresh = function() {};
       return source;
     };
 
@@ -956,9 +932,7 @@
       source = new ol.source.OSM({
         url: urlFormat
       });
-      source.oljq_refresh = (function(_this) {
-        return function() {};
-      })(this);
+      source.oljq_refresh = function() {};
       return source;
     };
 
@@ -966,7 +940,7 @@
       var $sourceElements, $this, source;
       $sourceElements = $element.children('ol-source');
       if ($sourceElements.length !== 1) {
-        throw "Expected exactly 1 source, " + $sourceElements.length + " given.";
+        throw new Error("Expected exactly 1 source, " + $sourceElements.length + " given.");
       }
       $this = $($sourceElements[0]);
       source = (function() {
@@ -976,12 +950,10 @@
           case 'osm':
             return this._parseOSMSource($this);
           default:
-            throw "Usupported tile source type: '" + ($this.attr('type')) + "'";
+            throw new Error("Usupported tile source type: '" + ($this.attr('type')) + "'");
         }
       }).call(this);
-      source.oljq_refresh = (function(_this) {
-        return function() {};
-      })(this);
+      source.oljq_refresh = function() {};
       return source;
     };
 
@@ -1006,7 +978,7 @@
               case 'tile':
                 return this._parseTileLayer($this);
               default:
-                throw "Usupported layer type: '" + ($this.attr('type')) + "'";
+                throw new Error("Usupported layer type: '" + ($this.attr('type')) + "'");
             }
           }).call(_this);
           layers.push(layer);
@@ -1020,7 +992,7 @@
       var $this, $viewElements, properties, ref;
       $viewElements = $element.children('ol-view');
       if ($viewElements.length !== 1) {
-        throw "Expected exactly 1 view, " + $viewElements.length + " given.";
+        throw new Error("Expected exactly 1 view, " + $viewElements.length + " given.");
       }
       $this = $($viewElements[0]);
       properties = {};
@@ -1086,7 +1058,7 @@
             case 'zoomFactor':
               return parseFloat(val);
             default:
-              throw "Usupported view property: '" + key + "'";
+              throw new Error("Usupported view property: '" + key + "'");
           }
         })();
         return properties[key] = val;
@@ -1109,16 +1081,12 @@
           url: $element.attr('src'),
           dataType: "xml",
           cache: true,
-          success: (function(_this) {
-            return function(data, textStatus, jqxhr) {
-              return deferred.resolve($(data).children('ol-configuration'));
-            };
-          })(this),
-          error: (function(_this) {
-            return function(jqXHR, textStatus, errorThrown) {
-              return deferred.reject(textStatus);
-            };
-          })(this)
+          success: function(data, textStatus, jqxhr) {
+            return deferred.resolve($(data).children('ol-configuration'));
+          },
+          error: function(jqXHR, textStatus, errorThrown) {
+            return deferred.reject(textStatus);
+          }
         });
       } else {
         deferred.resolve($($.parseXML($element.children('script[type="application/xml"]').text())).children('ol-configuration'));
@@ -1154,11 +1122,11 @@
           case !this._isDomNode(element):
             return $(element);
           default:
-            throw "Unknown element";
+            throw new Error("Unknown element");
         }
       }).call(this);
       if ($element.length === 0) {
-        throw "Unknown element";
+        throw new Error("Unknown element");
       }
       _configProjection = $element.attr('projection') ? $element.attr('projection') : _configProjection;
       return this._getOlConfig($element).then((function(_this) {
