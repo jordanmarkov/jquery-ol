@@ -1,5 +1,5 @@
 (function() {
-  var $, $body, $document, $head, $html, $window, GeoLib, OlInteractions, OlParser, OlStyleParser, base, base1, base2, base3, base4, geoLib, root;
+  var $, $body, $document, $head, $html, $window, GeoLib, OlInteractions, OlParser, OlStyleParser, base, base1, base2, base3, base4, exported, geoLib, root;
 
   root = typeof exports !== "undefined" && exports !== null ? exports : this;
 
@@ -114,10 +114,10 @@
       deferred = $.Deferred();
       if (typeof ol === "undefined" || ol === null) {
         if (jsUrl == null) {
-          jsUrl = 'http://openlayers.org/en/v3.8.2/build/ol-debug.js';
+          jsUrl = 'https://cdnjs.cloudflare.com/ajax/libs/ol3/3.9.0/ol-debug.js';
         }
         if (cssUrl == null) {
-          cssUrl = 'http://openlayers.org/en/v3.8.2/css/ol.css';
+          cssUrl = 'https://cdnjs.cloudflare.com/ajax/libs/ol3/3.9.0/ol.min.css';
         }
         setTimeout(((function(_this) {
           return function() {
@@ -1155,61 +1155,60 @@
 
   })();
 
-  (function() {
-    var exported;
-    exported = {
-      init: function(_options) {
-        var $this, jqol, options;
-        options = $.extend({}, $.fn.jqOpenLayers.defaults, _options);
-        $this = $(this);
-        jqol = new OlParser();
-        $this.data('JqOpenLayers', jqol);
-        jqol.parseMap($this, options);
-        return $this;
-      },
-      getLayers: function() {
-        var $this, jqol;
-        $this = $(this);
-        jqol = $this.data('JqOpenLayers');
-        return jqol.getLayers();
-      },
-      getVectorLayers: function() {
-        var $this, jqol;
-        $this = $(this);
-        jqol = $this.data('JqOpenLayers');
-        return jqol.getVectorLayers();
+  exported = {
+    init: function(_options) {
+      var $this, jqol, options;
+      options = $.extend({}, $.fn.jqOpenLayers.defaults, _options);
+      $this = $(this);
+      jqol = new OlParser();
+      $this.data('JqOpenLayers', jqol);
+      jqol.parseMap($this, options);
+      return $this;
+    },
+    getLayers: function() {
+      var $this, jqol;
+      $this = $(this);
+      jqol = $this.data('JqOpenLayers');
+      return jqol.getLayers();
+    },
+    getVectorLayers: function() {
+      var $this, jqol;
+      $this = $(this);
+      jqol = $this.data('JqOpenLayers');
+      return jqol.getVectorLayers();
+    }
+  };
+
+  $.fn.jqOpenLayers = function(options) {
+    var _arguments;
+    _arguments = arguments;
+    if (exported[options] && exported[options] !== 'init') {
+      if ($(this).length !== 1) {
+        $.error("Cannot invoke the method '" + options + "' on multiple elements");
+      } else {
+        return exported[options].apply(this, Array.prototype.slice.call(_arguments, 1));
       }
-    };
-    $.fn.jqOpenLayers = function(options) {
-      var _arguments;
-      _arguments = arguments;
-      if (exported[options] && exported[options] !== 'init') {
-        if ($(this).length !== 1) {
-          $.error("Cannot invoke the method '" + options + "' on multiple elements");
-        } else {
-          return exported[options].apply(this, Array.prototype.slice.call(_arguments, 1));
-        }
-      }
-      geoLib.loadOpenLayers().then((function(_this) {
-        return function() {
-          return _this.each(function() {
-            if (typeof options === 'object' || !options || (exported[options] && exported[options] === 'init')) {
-              return exported['init'].apply(this, options);
-            } else {
-              return $.error("The method '" + options + "' does not exist on jQuery.jqOpenLayers");
-            }
-          });
-        };
-      })(this));
-      return $(this);
-    };
-    $.fn.jqOpenLayers.defaults = {
-      projection: null,
-      enablePopups: false,
-      enableTooltips: false,
-      onLayerAdded: null,
-      onLayerLoaded: null
-    };
-  })();
+    }
+    geoLib.loadOpenLayers().then((function(_this) {
+      return function() {
+        return _this.each(function() {
+          if (typeof options === 'object' || !options || (exported[options] && exported[options] === 'init')) {
+            return exported.init.apply(this, options);
+          } else {
+            return $.error("The method '" + options + "' does not exist on jQuery.jqOpenLayers");
+          }
+        });
+      };
+    })(this));
+    return $(this);
+  };
+
+  $.fn.jqOpenLayers.defaults = {
+    projection: null,
+    enablePopups: false,
+    enableTooltips: false,
+    onLayerAdded: null,
+    onLayerLoaded: null
+  };
 
 }).call(this);

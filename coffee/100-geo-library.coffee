@@ -37,8 +37,8 @@
     loadOpenLayers: (jsUrl, cssUrl) ->
         deferred = $.Deferred()
         if not ol?
-            jsUrl ?= 'http://openlayers.org/en/v3.8.2/build/ol-debug.js'
-            cssUrl ?= 'http://openlayers.org/en/v3.8.2/css/ol.css'
+            jsUrl ?= 'https://cdnjs.cloudflare.com/ajax/libs/ol3/3.9.0/ol-debug.js'
+            cssUrl ?= 'https://cdnjs.cloudflare.com/ajax/libs/ol3/3.9.0/ol.min.css'
 
             setTimeout (=>
                 @loadJs(jsUrl).done ->
@@ -83,14 +83,18 @@
         ).toUpperCase()
 
 geoLib = new GeoLib()
+
+# generate unique GUID for an element
 $.fn.setUniqueId = ->
     if this.attr('id')
         this
     else
         guid = ''
+        # paranoid mode here, but this function is not supposed to used often
         while not guid
             _guid = geoLib.createGUID()
             if $("##{ _guid }").length == 0
                 this.attr('id', _guid)
                 guid = _guid
         this
+
