@@ -21,7 +21,11 @@
     "url": "https://github.com/jordanmarkov/jquery-ol/issues"
   },
   "license": "BSD-3-Clause",
-  "dependencies": {},
+  "dependencies": {
+    "jquery": "^2.1.4",
+    "openlayers": "^3.9.0",
+    "q": "^1.4.1"
+  },
   "devDependencies": {
     "async": "^1.4.2",
     "grunt": "^0.4.5",
